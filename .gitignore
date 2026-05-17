@@ -1,0 +1,12 @@
+# Data files
+data/processed/*.csv
+*.csv
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+
+# MacOS
+.DS_Store
