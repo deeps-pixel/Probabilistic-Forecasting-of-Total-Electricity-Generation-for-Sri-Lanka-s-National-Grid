@@ -59,4 +59,4 @@ Contributions are welcome. Please fork the repository, make your changes on a se
 
 
 ---
-*Explore the `docs/` folder for additional documentation and visual assets.*
+*This project was done for education purposes only.*
