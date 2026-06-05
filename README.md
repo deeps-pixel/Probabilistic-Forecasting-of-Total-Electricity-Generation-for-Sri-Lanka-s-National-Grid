@@ -54,9 +54,16 @@ The comprehensive research report is included as **`Project_Report.pdf`** in the
 - **Grid Copilot** – Ask natural‑language questions about capacity, forecasts, or policy documents. The AI will embed citations and metric values (e.g., “Tomorrow’s forecast is 1.2 GWh, with 96 % accuracy (MAE = 9.68 MW)”).
 - **Scenario Simulator** – Configure battery capacity and dispatch parameters, then run the RL agent to observe flattened load curves.
 
+## Configuration
+Create a local `.env` file in the project root containing your API key:
+```text
+ENERGY_API_KEY=your_api_key_here
+```
+Ensure `.env` is listed in `.gitignore` so it is not committed.
+
 ## Contributing
 Contributions are welcome. Please fork the repository, make your changes on a separate branch, and submit a pull request. Follow the existing code‑style guidelines and ensure all unit tests (if added) pass.
 
-
+---
 ---
 *This project was done for education purposes only.*
