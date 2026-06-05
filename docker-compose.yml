@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  dashboard:
+    build: .
+    container_name: energy_grid_dashboard
+    ports:
+      - "8001:8001" # host ↔ container
+    environment:
+      # Override with a real key or place it in a .env file
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-YOUR_GEMINI_API_KEY}
+    volumes:
+      # Mount source for live editing (dev only). Remove for production.
+      - .:/app
+    restart: unless-stopped
