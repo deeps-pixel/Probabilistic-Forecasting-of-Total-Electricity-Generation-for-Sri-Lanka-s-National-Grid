@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Energy Forecast</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Navbar Container -->
+    <div id="navbar-placeholder"></div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="page-header animate-fade-in" style="text-align: center;">
+            <h1 style="font-size: 3rem; margin-bottom: 1rem;">Probabilistic Forecasting System for <br><span
+                    class="highlight">Sri Lanka's Energy Grid</span></h1>
+
+            <p class="page-description">
+                Sri Lanka's advanced energy command center. Harness predictive intelligence and real-time models to monitor national grid demands, analyze individual power plant dispatch, and simulate battery energy storage optimizations for peak shaving.
+            </p>
+        </div>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 4rem;">
+
+            <div class="glass-card animate-fade-in" style="animation-delay: 0.1s; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h3>Generation Forecasts</h3>
+                    <p style="margin: 1rem 0; color: var(--text-secondary);">View total energy predictions across the entire grid, broken down by renewable and thermal sources.</p>
+                </div>
+                <a href="generation-forecasts.html" class="btn-primary" style="align-self: flex-start; margin-top: auto;">View Forecasts</a>
+            </div>
+
+            <div class="glass-card animate-fade-in" style="animation-delay: 0.2s; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h3>Plant Analytics</h3>
+                    <p style="margin: 1rem 0; color: var(--text-secondary);">Explore the interactive map to see detailed weather and generation forecasts for each individual power plant.</p>
+                </div>
+                <a href="plant-analytics.html" class="btn-primary" style="align-self: flex-start; margin-top: auto;">Analyze Plants</a>
+            </div>
+
+            <div class="glass-card animate-fade-in" style="animation-delay: 0.3s; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h3>Scenario Simulator</h3>
+                    <p style="margin: 1rem 0; color: var(--text-secondary);">Run hypothetical grid events and see how an AI assistant optimizes battery usage to stabilize the grid.</p>
+                </div>
+                <a href="scenario-simulator.html" class="btn-primary" style="align-self: flex-start; margin-top: auto;">Launch Simulator</a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Container -->
+    <div id="footer-placeholder"></div>
+
+    <script src="js/common.js"></script>
+</body>
+
+</html>

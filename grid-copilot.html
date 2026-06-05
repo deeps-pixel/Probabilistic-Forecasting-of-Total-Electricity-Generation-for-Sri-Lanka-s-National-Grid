@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Copilot | Advanced Energy</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main>
+        <header class="page-header animate-fade-in" style="margin-bottom: 1rem;">
+            <h1>Grid <span class="highlight">Copilot</span></h1>
+            <p>Your AI assistant for advanced grid operations and forecasting.</p>
+        </header>
+
+        <p class="page-description animate-fade-in" style="margin-bottom: 2rem;">
+            <strong>About this page:</strong> The Grid Copilot is an intelligent RAG (Retrieval-Augmented Generation)
+            agent. It can parse through highly technical CEB operational PDF reports and combine that textual knowledge
+            with real-time API calls to the LightGBM forecasting models. Ask it about total capacity, forecast metrics,
+            or policy documents!
+        </p>
+
+        <div class="chat-container animate-fade-in" style="animation-delay: 0.1s;">
+            <!-- Chat Header with Refresh -->
+            <div class="chat-header">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>Grid AI • Online</span>
+                </div>
+                <button class="refresh-chat-btn" title="Clear and Refresh Chat">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="chat-history">
+
+                <h2>How can I assist the Grid today?</h2>
+                <p style="color: #475569; text-align: center; max-width: 500px; margin-bottom: 1.5rem;">
+                    Ask anything about Sri Lanka's energy grid.
+                </p>
+
+                <div class="capabilities-box">
+                    <p>I can answer questions about:</p>
+                    <ul class="capabilities-list">
+                        <li>Renewable energy forecasts</li>
+                        <li>Plant-level predictions (50 plants)</li>
+                        <li>2022 economic crisis impact</li>
+                        <li>CEB reports and PUCSL tariffs</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Suggested Actions / Chips -->
+            <div class="chat-chips-wrapper">
+                <div class="chat-chip">What is the forecast for tomorrow?</div>
+                <div class="chat-chip">What will the grid look like next week?</div>
+                <div class="chat-chip">How accurate is the forecasting model?</div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <input type="text" class="chat-input" placeholder="Message Grid Copilot..." autofocus>
+                    <button class="chat-send-btn" aria-label="Send Message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+    <script src="js/common.js"></script>
+    <script src="js/copilot.js"></script>
+</body>
+
+</html>

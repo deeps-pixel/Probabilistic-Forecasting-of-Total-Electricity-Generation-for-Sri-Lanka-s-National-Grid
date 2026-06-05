@@ -1,0 +1,51 @@
+plant_id,plant_original_col,plant_name,type,owner,capacity_mw,latitude,longitude,hydro_cascade_target,plant_name_clean
+P01_canyon,canyon,Canyon Power Station,hydro,CEB,60,6.86917,80.52793,,Hydro_Canyon
+P02_wps,wps,Wimalasurendra Power Station,hydro,CEB,50,6.901,80.498,,Hydro_Wimalasurendra
+P03_olax,olax,Old Laxapana Power Station,hydro,CEB,50,6.91857,80.49165,,Hydro_OldLaxapana
+P04_nlax,nlax,New Laxapana Power Station,hydro,CEB,100,6.91806,80.4921,,Hydro_NewLaxapana
+P05_polp,polp,Polpitiya Power Station,Hydro,CEB,90,6.97791,80.4566,,Polpitiya Power Station
+P06_upper_kothmale,upper kothmale,Upper Kotmale Dam,Hydro,CEB,150,6.94685,80.65789,,Upper Kotmale Dam
+P07_koth,koth,Kotmale Dam,Hydro,CEB,201,7.0608,80.59691,,Kotmale Dam
+P08_vict,vict,Victoria Dam,Hydro,CEB,210,7.24063,80.78457,,Victoria Dam
+P09_rand,rand,Randenigala Dam,Hydro,CEB,122,7.20205,80.92434,,Randenigala Dam
+P10_rant,rant,Rantambe Dam,Hydro,CEB,49,7.199,80.957,,Rantambe Dam
+P11_uku,uku,Ukuwela Power Station,Hydro,CEB,40,7.411,80.606,,Ukuwela Power Station
+P12_bowa,bowa,Bowatenna Dam,Hydro,CEB,40,7.659,80.672,,Bowatenna Dam
+P13_sam,sam,Samanalawewa Dam,Hydro,CEB,120,6.666,80.806,,Samanalawewa Dam
+P14_kukule,kukule,Kukule Ganga Dam,Hydro,CEB,70,6.589,80.301,,Kukule Ganga Dam
+P15_lvps_1,lvps 1,Lakvijaya Unit 1,Coal,CEB,300,8.017,79.723,,Coal_Lakvijaya_Unit1
+P16_lvps_2,lvps 2,Lakvijaya Unit 2,Coal,CEB,300,8.017,79.723,,Coal_Lakvijaya_Unit2
+P17_lvps_3,lvps 3,Lakvijaya Unit 3,Coal,CEB,300,8.017,79.723,,Coal_Lakvijaya_Unit3
+P18_sapu_a,sapu a,Sapugaskanda Station A,Oil,CEB,72,6.95609,79.94828,,Thermal_Sapugaskanda_A
+P19_sapu_b,sapu b,Sapugaskanda Station B,Oil,CEB,72,6.95609,79.94828,,Thermal_Sapugaskanda_B
+P20_uthuru_janani,uthuru janani,Uthuru Janani Power Station,Oil,CEB,24,9.74104,80.0333,,Uthuru Janani Power Station
+P21_barge,barge,Colombo,Oil,CEB,60,6.93886,79.8542,,Thermal_Colombo_Barge
+P22_kccp,kccp,Kelanitissa KCCP,Oil,CEB,165,6.95264,79.8779,,Thermal_Kelanitissa_KCCP
+P23_ace_embp,ace embp,Embilipitiya,Oil,IPP,100,6.33406,80.85383,,Thermal_Embilipitiya_ACE
+P24_ace_matara,ace matara,Matara,Oil,IPP,20,5.94782,80.54829,,Matara
+P25_asia_power,asia power,Sapugaskanda,Oil,IPP,51,6.96744,79.94996,,Sapugaskanda
+P26_wcp,wcp,Yugadhanavi Power Station,Oil,IPP,300,6.938,79.87,,Yugadhanavi Power Station
+P27_sojitz_ccp,sojitz ccp,Kelanitissa Sojitz,Oil,IPP,163,6.95264,79.8779,,Thermal_Kelanitissa_Sojitz
+P28_kps(gt7),kps(gt7),Kelanitissa GT7,Oil,CEB,115,6.95264,79.8779,,Kelanitissa Power Station
+P29_kps(gt),kps(gt),Kelanitissa GT,Oil,CEB,80,6.95264,79.8779,,Kelanitissa Power Station
+P30_kps_dpp_thul,kps_dpp_thul,Thulhiriya,Oil,CEB,50,7.2792,80.22399,,Thulhiriya
+P31_kps_dpp_matu,kps_dpp_matu,Mathugama,Oil,CEB,50,6.68942,80.09448,,Mathugama
+P32_kps_dpp_kolo,kps_dpp_kolo,Kolonnawa,Oil,CEB,50,6.93263,79.89031,,Kolonnawa
+P33_vpower_palle.,vpower palle.,Pallekele,Oil,IPP,20,7.28053,80.69607,,Pallekele
+P34_vpower_galle,vpower galle,Galle,Oil,IPP,20,6.03281,80.21496,,Galle
+P35_vpower_horona,vpower horona,Horana,Oil,IPP,20,6.71665,80.06195,,Horana
+P36_solar,solar**,Hambantota Solar Power Station,Solar,IPP,500,6.1429,81.1212,,Hambantota Solar Power Station
+P37_wind_,wind **,Mannar Wind Power Station,Wind,IPP,250,8.98,79.9,,Mannar Wind Power Station
+P38_ceb_ipp_mini_hydro,ceb/ipp mini hydro***,Hatton,Hydro,IPP,400,6.89163,80.59846,,Hydro_Hatton_Mini
+P39_vpower_valach.,vpower valach.,Valachchenai,Oil,IPP,20,7.57697,81.75006,,Valachchenai
+P40_bmp,bmp**,Kandy,Biomass,IPP,50,7.29312,80.63504,,Kandy
+P41_broadlands,broadlands,Broadlands Hydropower Project,Hydro,CEB,35,6.988,80.443,,Broadlands Hydropower Project
+P42_kccps2,kccps2,Kelanitissa KCCPS2,Oil,CEB,165,6.95264,79.8779,,Thermal_Kelanitissa_KCCPS2
+P43_kps_dpp_hamba,kps_dpp_hamba,Hambantota,Oil,CEB,50,6.12491,81.12426,,Hambantota
+P44_ace_embili,ace embili,Embilipitiya,Oil,IPP,100,6.33406,80.85383,,Thermal_Embilipitiya_Embili
+P45_uma_oya,uma oya,Uma Oya Hydropower Complex,Hydro,CEB,120,6.865,81.042,,Uma Oya Hydropower Complex
+P46_sobadhanavi_ps,sobadhanavi ps,Sobadhanavi Power Plant,LNG,IPP,350,6.96,79.89,,Sobadhanavi Power Plant
+P47_major_hydro,major hydro,Hatton,Hydro,CEB,1300,6.89163,80.59846,,Hydro_Hatton_Major
+P48_oil-ipp_owned,oil-ipp owned,Colombo,Oil,IPP,500,6.93886,79.8542,,Thermal_Colombo_IPP
+P49_oil-_ceb_owned,oil- ceb owned,Colombo,Oil,CEB,500,6.93886,79.8542,,Thermal_Colombo_CEB
+P50_coal,coal,Lakvijaya Unit 4,Coal,CEB,900,8.017,79.723,,Coal_Lakvijaya_Unit4

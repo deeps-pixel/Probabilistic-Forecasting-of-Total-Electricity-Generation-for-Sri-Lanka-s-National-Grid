@@ -1,0 +1,14 @@
+master_count 50
+final_series_count 5
+orig_series_count 50
+P26_wcp in master True
+P26_wcp in final_series False
+P26_wcp in orig_series True
+common master/final 5
+common master/orig 50
+common final/orig 5
+only in master count 0
+only in orig count 0
+only in final count 0
+first 20 orig ids P01_canyon,P02_wps,P03_olax,P04_nlax,P05_polp,P06_upper_kothmale,P07_koth,P08_vict,P09_rand,P10_rant,P11_uku,P12_bowa,P13_sam,P14_kukule,P15_lvps_1,P16_lvps_2,P17_lvps_3,P18_sapu_a,P19_sapu_b,P20_uthuru_janani
+first 20 final ids P01_canyon,P02_wps,P03_olax,P04_nlax,P05_polp

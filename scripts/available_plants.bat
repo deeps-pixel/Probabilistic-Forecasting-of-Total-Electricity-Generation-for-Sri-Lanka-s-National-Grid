@@ -1,0 +1,2 @@
+@echo off
+"C:\Users\LENOVO\AppData\Roaming\uv\python\cpython-3.14.5-windows-x86_64-none\python.exe" -c "import pandas as pd; p=r'h:\Other computers\My Laptop\ISMF\Level 4 Semester 1\IS 4007 - Statistics in Practice II\Final Web Aplication\data\processed\01_timeseries_data_imputed.csv'; df = pd.read_csv(p, usecols=['plant_id'], nrows=200000); ids = sorted(df['plant_id'].astype(str).unique()); print(len(ids)); print('\n'.join(ids))"

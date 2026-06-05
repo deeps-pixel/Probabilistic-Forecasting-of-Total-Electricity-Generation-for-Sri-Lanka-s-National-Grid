@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "d:\energy_dashboard\scripts\ensure_copy_and_list.py", line 13, in <module>
+    for chunk in pd.read_csv(orig, usecols=['plant_id'], chunksize=200000):
+                 ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\AppData\Roaming\uv\python\cpython-3.14.5-windows-x86_64-none\Lib\site-packages\pandas\io\parsers\readers.py", line 1866, in __next__
+    return self.get_chunk()
+           ~~~~~~~~~~~~~~^^
+  File "C:\Users\LENOVO\AppData\Roaming\uv\python\cpython-3.14.5-windows-x86_64-none\Lib\site-packages\pandas\io\parsers\readers.py", line 2012, in get_chunk
+    return self.read(nrows=size)
+           ~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\LENOVO\AppData\Roaming\uv\python\cpython-3.14.5-windows-x86_64-none\Lib\site-packages\pandas\io\parsers\readers.py", line 1947, in read
+    ) = self._engine.read(  # type: ignore[attr-defined]
+        ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        nrows
+        ^^^^^
+    )
+    ^
+  File "C:\Users\LENOVO\AppData\Roaming\uv\python\cpython-3.14.5-windows-x86_64-none\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py", line 215, in read
+    chunks = self._reader.read_low_memory(nrows)
+  File "pandas/_libs/parsers.pyx", line 844, in pandas._libs.parsers.TextReader.read_low_memory
+  File "pandas/_libs/parsers.pyx", line 897, in pandas._libs.parsers.TextReader._read_rows
+  File "pandas/_libs/parsers.pyx", line 868, in pandas._libs.parsers.TextReader._tokenize_rows
+  File "pandas/_libs/parsers.pyx", line 885, in pandas._libs.parsers.TextReader._check_tokenize_status
+  File "pandas/_libs/parsers.pyx", line 2076, in pandas._libs.parsers.raise_parser_error
+OSError: [Errno 22] Invalid argument

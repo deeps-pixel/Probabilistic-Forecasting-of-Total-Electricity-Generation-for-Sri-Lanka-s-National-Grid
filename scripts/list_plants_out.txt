@@ -1,0 +1,2 @@
+Unique plant ids (sample):
+['P01_canyon', 'P02_wps']

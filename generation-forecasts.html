@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generation Forecasts | Advanced Energy</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main id="forecast-main-content" class="animate-fade-in">
+        <header class="page-header animate-fade-in" style="margin-bottom: 1rem;">
+            <h1>Generation <span class="highlight">Forecast</span></h1>
+            <p>Aggregated national grid predictions powered by AI.</p>
+        </header>
+
+        <section class="forecast-hero" style="display: flex; flex-direction: column; align-items: center;">
+            <div class="glass-card forecast-control-card" style="width: 100%; max-width: 900px; padding: 2rem !important; overflow: hidden;">
+                <div class="hero-content">
+                    <h1 style="font-size: 1.5rem; margin-bottom: 0px; text-align: left; opacity: 0.6; font-weight: 400; text-transform: uppercase; letter-spacing: 2px;">Target Date</h1>
+                    <div id="day-ribbon" class="day-ribbon">
+                        <div class="day-tile active"><span class="d-name">...</span></div>
+                    </div>
+                    <input type="date" id="forecast-date-picker" style="display: none;">
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <button id="run-forecast-btn" class="btn-primary" style="padding: 1rem 3rem; font-size: 1.2rem;">
+                    Generate Forecast
+                </button>
+            </div>
+        </section>
+
+        <!-- Results Container (Hidden on Load) -->
+        <div id="forecast-results" style="display: none; margin-top: 1.5rem;">
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <div class="model-badge" style="background: rgba(13, 148, 136, 0.1); color: var(--cool-teal); border: 1px solid var(--cool-teal);">
+                    <span style="letter-spacing: 1px; font-weight: 500;">AI Forecast Powered by LightGBM & Baseline Ensemble</span>
+                </div>
+            </div>
+
+            <!-- 3 Stat Cards in 1 Row -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="stat-card glow-energy-card" style="padding: 1rem; border-radius: 12px; background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(13, 148, 136, 0.3);">
+                    <span class="stat-label" style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.2rem; text-transform: uppercase;">Total Daily Yield</span>
+                    <h3 id="stat-total-gwh" style="font-size: 1.6rem; color: #0d9488; margin: 0;">-- GWh</h3>
+                </div>
+                <div class="stat-card" style="padding: 1rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <span class="stat-label" style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.2rem; text-transform: uppercase;">Renewable Share</span>
+                    <h3 id="stat-renewable-share" style="font-size: 1.6rem; color: var(--text-primary); margin: 0; margin-bottom: 0.5rem;">--%</h3>
+                    <div class="energy-segment-container" style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; display: flex; overflow: hidden; margin-top: 0;">
+                        <div id="seg-hydro" class="energy-segment segment-hydro" style="width: 0%; background: #0f766e;"></div>
+                        <div id="seg-wind" class="energy-segment segment-wind" style="width: 0%; background: #10b981;"></div>
+                        <div id="seg-solar" class="energy-segment segment-solar" style="width: 0%; background: #f59e0b;"></div>
+                    </div>
+                </div>
+                <div class="stat-card" style="padding: 1rem; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <span class="stat-label" style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.2rem; text-transform: uppercase;">Predicted Max Load</span>
+                    <h3 id="stat-peak-demand" style="font-size: 1.6rem; color: var(--text-primary); margin: 0;">-- MW</h3>
+                </div>
+            </div>
+
+            <section class="chart-card glass-card" style="margin-bottom: 2rem; padding: 1.5rem;">
+                <div class="chart-header">
+                    <h3>24-Hour Generation Stack</h3>
+                    <div class="chart-legend" style="display: flex; gap: 1rem; flex-wrap: wrap;" id="forecast-legend"></div>
+                </div>
+                <div style="height: 350px; position: relative;">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </section>
+
+            <!-- 2x2 Grid + Bar Chart -->
+            <section class="glass-card" style="margin-bottom: 2rem; padding: 2rem !important;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;">
+                    <!-- Left: 4 Metrics in 2x2 Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="intelligence-tile">
+                            <span class="m-title">LightGBM Model</span>
+                            <div class="m-main-value" id="val-r2" style="font-size: 1.6rem; color: var(--accent-glow);">0.9884</div>
+                            <span class="m-sub-text">R-Squared</span>
+                        </div>
+                        <div class="intelligence-tile">
+                            <span class="m-title">Forecast Error</span>
+                            <div class="m-main-value" id="val-lgbm-mae" style="font-size: 1.6rem;">10.05 MW</div>
+                            <span class="m-sub-text">MAE Signature</span>
+                        </div>
+                        <div class="intelligence-tile">
+                            <span class="m-title">Intelligence</span>
+                            <div class="m-main-value" id="val-plants" style="font-size: 1.6rem;">50 Nodes</div>
+                            <span class="m-sub-text">Analyzed</span>
+                        </div>
+                        <div class="intelligence-tile">
+                            <span class="m-title">Reliability Window</span>
+                            <div class="m-main-value" id="val-uncertainty" style="font-size: 1.6rem;">±150 MW</div>
+                            <span class="m-sub-text">80% Confidence</span>
+                        </div>
+                    </div>
+                    <!-- Right: Bar Chart -->
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="energy-pulse-loader"><i>⚡</i></div>
+            <div class="loading-text">Generating Forecast</div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/forecasts.js"></script>
+</body>
+</html>

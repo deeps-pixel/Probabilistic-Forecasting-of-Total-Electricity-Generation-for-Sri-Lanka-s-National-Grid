@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About the Project | Advanced Energy</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .report-section {
+            margin-bottom: 4rem;
+        }
+
+        .report-section h2 {
+            font-size: 2rem;
+            color: var(--slate-gray);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .report-section p,
+        .report-section li {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+        
+        .report-section p strong {
+            color: var(--text-primary);
+        }
+
+        .highlight-box {
+            background: rgba(13, 148, 136, 0.05);
+            border-left: 4px solid var(--cool-teal);
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main class="animate-fade-in" style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
+        <header class="page-header" style="text-align: center; margin-bottom: 4rem;">
+            <h1 style="font-size: 3.5rem;">Probabilistic <span class="highlight">Forecasting</span></h1>
+            <p style="font-size: 1.2rem; color: #64748b; max-width: 800px; margin: 0 auto;">Of Total Electricity Generation for Sri Lanka's National Grid</p>
+
+            <a href="Project_Report.pdf" download class="btn-primary"
+                style="display: inline-block; margin-top: 2rem; padding: 1rem 2rem; text-decoration: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="vertical-align: middle; margin-right: 0.5rem;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                Download Full Research Report (PDF)
+            </a>
+        </header>
+
+        <div class="glass-card" style="padding: 4rem !important; border-radius: 24px;">
+
+            <!-- Section 1: Introduction -->
+            <section class="report-section">
+                <h2>1. Background & Context</h2>
+                <p>Sri Lanka’s electricity grid is managed by the Ceylon Electricity Board (CEB), which operates 50 power plants across the country. The generation mix includes 18 major hydro plants, a coal station, thermal oil plants, wind farms, and solar arrays.</p>
+                <p>The government has set ambitious targets: <strong>70% renewable-based electricity generation by 2030</strong> and carbon neutrality by 2050. Integrating weather-dependent energy sources presents immense grid stability challenges due to their inherent intermittency.</p>
+            </section>
+
+            <!-- Section 2: Problem Statement -->
+            <section class="report-section">
+                <h2>2. The Problem Statement</h2>
+                <p>Every morning, CEB must decide how much electricity to contract from Independent Power Producers (IPPs) for the next day. This decision requires highly accurate forecasting of electricity generation across all active sources.</p>
+                <div class="highlight-box">
+                    <h3 style="color: var(--cool-teal); margin-bottom: 1rem; font-size: 1.4rem;">The Cost of Inaccuracy</h3>
+                    <ul style="margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.5;">
+                        <li style="text-align: left;"><strong>Under-contracting:</strong> Shortfalls occur, forcing CEB to buy emergency power from the spot market (65 LKR/kWh vs 25 LKR/kWh contract rate).</li>
+                        <li style="text-align: left;"><strong>Over-contracting:</strong> Excess energy is wasted; CEB pays for power it does not use, leading to massive financial losses.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 3: Methodology -->
+            <section class="report-section">
+                <h2>3. Methodology & AI Architecture</h2>
+                <p>No publicly available system previously provided probabilistic, weather-integrated forecasts for Sri Lanka's 50 power plants. This dashboard bridges that research gap by employing a robust machine learning pipeline tailored specifically to the country's generation landscape.</p>
+                <ul style="margin-left: 1.5rem; margin-top: 1.5rem;">
+                    <li style="text-align: left;"><strong>Model Architecture:</strong> We utilize <strong>LightGBM</strong> combined with a Baseline Ensemble to effectively predict both weather-dependent and scheduled thermal generation.</li>
+                    <li style="text-align: left;"><strong>Conformal Prediction:</strong> Calibrated 80% confidence intervals are generated to quantify uncertainty and risk, ensuring grid operators can account for unexpected deviations.</li>
+                    <li style="text-align: left;"><strong>Time Series Cross-Validation:</strong> Models are rigorously validated using walk-forward techniques to prevent look-ahead bias and ensure real-world generalizability.</li>
+                </ul>
+            </section>
+
+            <!-- Section 4: Results -->
+            <section class="report-section" style="margin-bottom: 0;">
+                <h2>4. Forecasting Results</h2>
+                <p>The final deployment achieved an impressive <strong>R-Squared of 0.965</strong> with a Mean Absolute Error (MAE) of just 10.05 MW across the grid. The probabilistic intervals accurately encapsulate actual generation curves, providing grid operators the exact intelligence they need to make confident financial and stability decisions.</p>
+                <p>By shifting from intuition-based dispatch to data-driven AI models, the national grid stands to reduce emergency procurement costs significantly while smoothly integrating an increasing share of renewable energy sources.</p>
+            </section>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder" style="margin-top: 4rem;"></div>
+
+    <script src="js/common.js"></script>
+</body>
+
+</html>

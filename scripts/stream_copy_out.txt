@@ -1,0 +1,22 @@
+src True dst_dir h:\Other computers\My Laptop\ISMF\Level 4 Semester 1\IS 4007 - Statistics in Practice II\Final Web Aplication\data\processed
+wrote 16777216
+wrote 33554432
+wrote 50331648
+wrote 67108864
+wrote 83886080
+wrote 100663296
+wrote 117440512
+wrote 134217728
+wrote 150994944
+wrote 167772160
+wrote 184549376
+wrote 201326592
+wrote 218103808
+wrote 234881024
+wrote 251658240
+wrote 268435456
+wrote 285212672
+Traceback (most recent call last):
+  File "d:\energy_dashboard\scripts\stream_copy_timeseries.py", line 14, in <module>
+    chunk = fsrc.read(16 * 1024 * 1024)
+OSError: [Errno 22] Invalid argument

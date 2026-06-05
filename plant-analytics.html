@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Analytics | Advanced Energy</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { overflow-y: auto !important; height: auto !important; }
+        html { overflow-y: auto !important; height: auto !important; }
+
+        .analytics-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        #mini-map-canvas {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .plant-list-container {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+        }
+
+        .plant-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .plant-list .plant-item {
+            cursor: pointer;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .plant-list .plant-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .bottom-split {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .weather-metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .weather-card h4 {
+            color: var(--slate-gray);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .weather-card p {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .chart-wrapper {
+            height: 400px;
+            width: 100%;
+        }
+
+        #loading-spinner {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .energy-pulse-loader i { font-size: 2rem; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+    <main class="animate-fade-in" style="max-width: 1600px; margin: 0 auto; padding: 2rem;">
+        <header class="page-header" style="margin-bottom: 1rem;">
+            <h1>Plant <span class="highlight">Analytics</span></h1>
+            <p>View and analyze individual power plant predictive performance.</p>
+        </header>
+
+        <p class="page-description" style="margin-bottom: 2rem;">
+            <strong>About this page:</strong> Click on any power plant from the map or list below to view its detailed generation forecast. The system dynamically pulls weather variables from the Open-Meteo API and routes them into either the LightGBM predictive models or the baseline model, specific to the plant type.
+        </p>
+
+        <!-- Top split layout -->
+        <div class="analytics-split">
+            <!-- Map column -->
+            <aside class="left-sidebar">
+                <div id="mini-map-canvas"></div>
+            </aside>
+            <!-- Selector column -->
+            <aside class="right-sidebar">
+                <div class="plant-list-container glass-card">
+                    <div class="controls-row" style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                        <input type="text" id="plant-search" placeholder="Search plant names..." class="dropdown-elegant" style="flex:2;" />
+                        <select id="type-filter" class="dropdown-elegant" style="flex:1;">
+                            <option value="all">All Types</option>
+                            <option value="hydro">Hydro</option>
+                            <option value="coal">Coal</option>
+                            <option value="wind">Wind</option>
+                            <option value="solar">Solar</option>
+                            <option value="oil">Oil</option>
+                            <option value="lng">LNG</option>
+                        </select>
+                    </div>
+                    <div class="plant-list" id="sidebar-plant-list">
+                        <!-- Plant list items populated by JS -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Results panel -->
+        <section class="glass-card" style="padding: 2rem; margin-top: 2rem; position: relative; min-height: 500px; display: none;" id="analytics-panel">
+            <div id="empty-state" style="text-align: center; margin-top: 5rem; opacity: 0.5;">
+                <p>Select a plant from the map or list to view analytics.</p>
+            </div>
+            
+            <div id="data-state" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                    <div>
+                        <h2 id="detail-plant-name" style="font-size: 1.8rem; color: var(--text-primary); margin-bottom: 0.5rem;">Plant Name</h2>
+                        <span id="detail-plant-type" class="model-badge">Type</span>
+                    </div>
+                    <input type="date" id="detail-date" class="dropdown-elegant" />
+                </div>
+                
+                <div class="bottom-split" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Left: Weather -->
+                    <div class="weather-section">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 1.2rem;">Weather Forecast (Open-Meteo)</h3>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="weatherChart"></canvas>
+                        </div>
+                                                <div class="weather-metrics-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 1.5rem;">
+                            <div class="weather-card" style="padding: 1rem; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.6); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <h4 style="font-size: 1rem;">🌡️ Avg Temp</h4>
+                                <p id="w-temp" style="font-size: 1.2rem; font-weight: 600; color: var(--cool-teal);">-- °C</p>
+                            </div>
+                            <div class="weather-card" style="padding: 1rem; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.6); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <h4 style="font-size: 1rem;">🌬️ Avg Wind</h4>
+                                <p id="w-wind" style="font-size: 1.2rem; font-weight: 600; color: var(--cool-teal);">-- m/s</p>
+                            </div>
+                            <div class="weather-card" style="padding: 1rem; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.6); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <h4 style="font-size: 1rem;">☀️ Avg Solar</h4>
+                                <p id="w-solar" style="font-size: 1.2rem; font-weight: 600; color: var(--cool-teal);">-- W/m²</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Forecast Chart -->
+                    <div class="forecast-section">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 1.2rem;">24‑Hour Generation Forecast</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="plantChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card" style="margin-top: 2rem; padding: 1.5rem; background: rgba(13, 148, 136, 0.05);">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #0d9488;">Forecasting Method</h4>
+                    <p id="forecast-explanation" style="font-size: 0.95rem; color: #64748b; line-height: 1.6;"></p>
+                </div>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button id="toggle-table-btn" class="btn-primary">Show Detailed Table</button>
+                </div>
+                
+                <div id="detailed-table-container" style="display: none; margin-top: 2rem; overflow-x: auto; max-height: 400px; background: #ffffff; border-radius: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1);">
+                    <table style="width: 100%; border-collapse: collapse; color: var(--text-primary); text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                                <th style="padding: 0.5rem 1rem;">Hour</th>
+                                <th style="padding: 0.5rem 1rem;">Temp (°C)</th>
+                                <th style="padding: 0.5rem 1rem;">Wind (m/s)</th>
+                                <th style="padding: 0.5rem 1rem;">Solar (W/m²)</th>
+                                <th style="padding: 1rem; color: var(--cool-teal);">Forecast (MW)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailed-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="loading-spinner">
+                <div class="energy-pulse-loader"><i>⚡</i></div>
+                <p>Fetching Open-Meteo Weather &amp; Running Model...</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/analytics.js"></script>
+</body>
+</html>

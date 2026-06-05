@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scenario Simulator | Advanced Energy</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .control-group {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .control-group h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        .simulation-btn {
+            background: var(--cool-teal);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .simulation-btn:hover {
+            background: var(--primary-hover);
+        }
+        .chart-container {
+            position: relative;
+            height: 500px;
+            width: 100%;
+        }
+        .stat-card {
+            background: rgba(13, 148, 136, 0.1);
+            border-left: 4px solid var(--cool-teal);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <main class="animate-fade-in">
+        <header class="page-header" style="text-align: center;">
+            <h1 style="font-size: 2.8rem;">Scenario <span class="highlight">Simulator</span></h1>
+            <p>Run hypothetical grid events and simulate RL battery dispatch policies.</p>
+        </header>
+        
+                <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.05); border-left: 4px solid var(--cool-teal);">
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">How it works</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6;">
+                1. <strong>Define Target Date:</strong> The system forecasts the baseline load for the selected day.<br>
+                2. <strong>Set Battery Constraints:</strong> Adjust the storage capacity and the max charge/discharge rates to model different BESS (Battery Energy Storage Systems) units.<br>
+                3. <strong>Run AI Dispatch:</strong> The Reinforcement Learning agent computes the optimal charge/discharge cycles. The original curve is the base grid demand. The net load curve shows the demand after the battery operation. Positive battery dispatch implies discharging to the grid (shaving peaks), and negative implies charging from the grid (filling troughs).
+            </p>
+        </div>
+
+        <div class="scenario-grid">
+            <!-- Left: Controls -->
+            <aside class="control-panel">
+                <div class="control-group glass-card">
+                    <h3>Simulation Parameters</h3>
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--slate-gray);">Target Date</label>
+                    <input type="date" id="sim-date" value="2026-06-03" style="width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 1.5rem; font-family: 'Inter', sans-serif;">
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--slate-gray);">Battery Capacity (MW)</label>
+                    <input type="range" id="sim-batt-cap" min="100" max="2000" step="50" value="500" style="width: 100%; margin-bottom: 0.5rem;" oninput="document.getElementById('sim-batt-cap-val').innerText = this.value + ' MW'">
+                    <span id="sim-batt-cap-val" style="display: block; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-secondary); text-align: right; font-weight: 600;">500 MW</span>
+
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--slate-gray);">Max Charge/Discharge Rate (MW)</label>
+                    <input type="range" id="sim-batt-rate" min="10" max="1000" step="10" value="100" style="width: 100%; margin-bottom: 0.5rem;" oninput="document.getElementById('sim-batt-rate-val').innerText = this.value + ' MW'">
+                    <span id="sim-batt-rate-val" style="display: block; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-secondary); text-align: right; font-weight: 600;">100 MW</span>
+                    
+                    <button id="run-sim-btn" class="simulation-btn">
+                        ▶ Run RL Simulation
+                    </button>
+                </div>
+                
+
+            </aside>
+
+            <!-- Right: Visualization -->
+            <section class="glass-card" style="padding: 2rem;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--text-primary);">Battery Dispatch Curve</h2>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="scenarioChart"></canvas>
+                </div>
+                <div class="stat-card" id="sim-stats" style="display: none; text-align: center; margin-top: 1rem;">
+                    <h4 style="color: var(--cool-teal); font-size: 0.95rem; text-transform: uppercase; margin-bottom: 0;">Simulation Complete</h4>
+                    <p style="font-size: 0.9rem; margin-top: 0.2rem; color: var(--text-secondary);">The agent successfully optimized the grid load.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="footer-placeholder" style="margin-top: 4rem;"></div>
+
+    <script src="js/common.js"></script>
+    <script src="js/scenario.js"></script>
+</body>
+</html>
