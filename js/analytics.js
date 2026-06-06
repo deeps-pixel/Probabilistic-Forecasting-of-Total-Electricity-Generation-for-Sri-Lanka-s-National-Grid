@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
         console.error("Failed to load plants:", e);
     }
-    
+
     document.getElementById('plant-search').addEventListener('input', applyFilters);
     document.getElementById('type-filter').addEventListener('change', applyFilters);
-    
+
     const dDate = new Date();
     const tDay = dDate.toISOString().split('T')[0];
     dDate.setDate(dDate.getDate() + 14);
@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         picker.min = tDay;
         picker.max = mDay;
     }
-    
+
     document.getElementById('detail-date').addEventListener('change', () => {
         if (currentPlant) loadPlantForecast(currentPlant);
     });
-    
+
     document.getElementById('toggle-table-btn').addEventListener('click', () => {
         const tableContainer = document.getElementById('detailed-table-container');
         const btn = document.getElementById('toggle-table-btn');
@@ -69,11 +69,11 @@ function initMap() {
             iconSize: [8, 8]
         });
         const marker = L.marker([plant.latitude, plant.longitude], { icon: icon }).addTo(map);
-        
+
         let popupText = `<strong>${plant.plant_name}</strong><br>${plant.type} - ${plant.capacity_mw} MW`;
         if (!plant.is_modeled) popupText += "<br><small style='color:red;'>Not Modeled</small>";
         marker.bindPopup(popupText);
-        
+
         marker.on('click', () => {
             if (plant.is_modeled) {
                 map.flyTo([plant.latitude, plant.longitude], 10, { duration: 1 });
@@ -82,7 +82,7 @@ function initMap() {
                 marker.openPopup();
             }
         });
-        plantMarkers.push({plant: plant, marker: marker});
+        plantMarkers.push({ plant: plant, marker: marker });
     });
 }
 
@@ -106,7 +106,7 @@ function renderPlantList(plants) {
                 if (plant.has_valid_coords) {
                     map.flyTo([plant.latitude, plant.longitude], 10, { duration: 1 });
                     const pm = plantMarkers.find(m => m.plant.plant_id === plant.plant_id);
-                    if(pm) pm.marker.openPopup();
+                    if (pm) pm.marker.openPopup();
                 }
                 loadPlantForecast(plant);
             }
@@ -137,7 +137,7 @@ async function loadPlantForecast(plant) {
     document.getElementById('analytics-panel').style.display = 'block';
     document.getElementById('empty-state').style.display = 'none';
     document.getElementById('empty-state').style.display = 'none';
-        document.getElementById('data-state').style.display = 'block';
+    document.getElementById('data-state').style.display = 'block';
 
     document.getElementById('detail-plant-name').innerText = plant.plant_name;
 
@@ -153,23 +153,32 @@ async function loadPlantForecast(plant) {
         const res = await fetch(`http://localhost:8001/api/forecast/plant/${plant.plant_name}/${dateStr}`);
         if (!res.ok) throw new Error('Forecast unavailable for selected date');
         const data = await res.json();
-        
+
         document.getElementById('w-temp').innerText = `${data.weather.temp} °C`;
         document.getElementById('w-wind').innerText = `${data.weather.wind_speed} m/s`;
         const solarVal = data.weather.solar_irradiance;
         document.getElementById('w-solar').innerText = solarVal && solarVal !== 0 ? `${solarVal} W/m²` : 'N/A';
-        
+
         const expl = document.getElementById('forecast-explanation');
-        if (data.used_model === true || data.used_model === 'true') {
-            expl.innerHTML = "<strong>LightGBM Forecasting Model:</strong> Utilizing real-time meteorological conditions (Temp, Solar, Wind) coupled with historical capabilities to predict generation accurately.";
-        } else {
-            expl.innerHTML = "<strong>Baseline Ensemble Method:</strong> As a scheduled or thermal unit, generation is modeled using standard operating capacity metrics and diurnal dispatch curves.";
+
+        // Customize message based on model_type from backend
+        if (data.model_type === 'lightgbm') {
+            expl.innerHTML = "<strong>LightGBM Model:</strong> Uses real-time weather data (temperature, wind, solar radiation) and 4 years of historical patterns. Optimized for weather-dependent plants like hydro, solar, and wind.";
         }
-        
+        else if (data.model_type === 'random_forest') {
+            expl.innerHTML = "<strong>Random Forest Model:</strong> Uses time-based features (hour, day of week, month, and historical lags). Specifically trained for the Yugadhanavi power station.";
+        }
+        else if (data.model_type === 'baseline') {
+            expl.innerHTML = "<strong>Baseline Capacity Model:</strong> Simple forecast using 70% capacity factor for coal plants or 40% for oil plants, with diurnal adjustment for daily patterns.";
+        }
+        else {
+            expl.innerHTML = "<strong>Forecast Method:</strong> " + (data.model_type || "Standard model applied.");
+        }
+
         renderWeatherChart(data.weather);
         renderChart(data.sparkline);
         populateTable(data);
-        lastValidDate = dateStr; 
+        lastValidDate = dateStr;
     } catch (e) {
         alert('Failed to load forecast: ' + e.message);
         document.getElementById('detail-date').value = lastValidDate;
@@ -180,10 +189,10 @@ async function loadPlantForecast(plant) {
 
 function renderWeatherChart(weatherData) {
     const ctx = document.getElementById('weatherChart').getContext('2d');
-    const labels = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-    
+    const labels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+
     if (weatherChart) weatherChart.destroy();
-    
+
     weatherChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -236,10 +245,10 @@ function renderWeatherChart(weatherData) {
 
 function renderChart(sparkline) {
     const ctx = document.getElementById('plantChart').getContext('2d');
-    const labels = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
-    
+    const labels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+
     if (plantChart) plantChart.destroy();
-    
+
     plantChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -279,16 +288,16 @@ function renderChart(sparkline) {
 function populateTable(data) {
     const tbody = document.getElementById('detailed-table-body');
     tbody.innerHTML = '';
-    for(let i=0; i<24; i++) {
+    for (let i = 0; i < 24; i++) {
         const tr = document.createElement('tr');
         tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-        
+
         const hr = `${i.toString().padStart(2, '0')}:00`;
         const temp = data.weather.hourly_temp && data.weather.hourly_temp.length > i ? data.weather.hourly_temp[i] : '--';
         const wind = data.weather.hourly_wind && data.weather.hourly_wind.length > i ? data.weather.hourly_wind[i] : '--';
         const solar = data.weather.hourly_solar && data.weather.hourly_solar.length > i ? data.weather.hourly_solar[i] : '--';
         const fcst = data.sparkline[i].toFixed(2);
-        
+
         tr.innerHTML = `
             <td style="padding: 0.75rem;">${hr}</td>
             <td style="padding: 0.75rem;">${temp}</td>
