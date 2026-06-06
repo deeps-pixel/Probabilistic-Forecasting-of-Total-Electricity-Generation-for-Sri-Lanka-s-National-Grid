@@ -2,6 +2,10 @@
 
 > Probabilistic, weather‑integrated electricity generation forecasting for Sri Lanka's national grid, delivered as an interactive full‑stack dashboard.
 
+## Demo Video
+
+[Watch the demo on Google Drive]([https://drive.google.com/your-link](https://drive.google.com/file/d/1RN3GX-rn3rMaiF-Vg3C3dGgV7T3yzOjZ/view?usp=sharing))
+
 ## Introduction
 
 This project combines historical CEB operational reports, weather data, and machine‑learning models (LightGBM, Decision‑Tree baseline, and a reinforcement‑learning battery dispatch agent) to provide:
