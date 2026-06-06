@@ -1,14 +1,17 @@
 import os
 import pickle
 from datetime import datetime
+from pathlib import Path
 import pandas as pd
 import numpy as np
 
-# Paths to assets inside the Individual Report (uses absolute paths to avoid duplication)
-PROJECT_ROOT = r"d:\energy_dashboard - uggghhhhhh - im done"
-MODEL_PATH = os.path.join(PROJECT_ROOT, 'lgbm_deployment', 'models', 'final_lightgbm.pkl')
-FEATURES_PATH = os.path.join(PROJECT_ROOT, 'lgbm_deployment', 'models', 'feature_names.pkl')
-TIMESERIES_PATH = os.path.join(PROJECT_ROOT, 'data', 'processed', '01_timeseries_data_imputed.csv')
+# Get dynamic base directory (web_app folder -> project root)
+BASE_DIR = Path(__file__).parent.parent.absolute()
+
+# Dynamic paths
+MODEL_PATH = BASE_DIR / "models" / "final_lightgbm.pkl"
+FEATURES_PATH = BASE_DIR / "models" / "feature_names.pkl"
+TIMESERIES_PATH = BASE_DIR / "data" / "processed" / "01_timeseries_data_imputed.csv"
 
 _model = None
 _feature_names = None
@@ -19,21 +22,32 @@ def _load_model():
     global _model, _feature_names
     if _model is None:
         if not os.path.exists(MODEL_PATH):
-            raise FileNotFoundError(f"Report model not found at {MODEL_PATH}")
-        with open(MODEL_PATH, 'rb') as f:
-            _model = pickle.load(f)
+            # Try alternative model name if final_lightgbm.pkl doesn't exist
+            alt_model_path = BASE_DIR / "models" / "dt_model.pkl"
+            if os.path.exists(alt_model_path):
+                print(f"Using alternative model: {alt_model_path}")
+                with open(alt_model_path, 'rb') as f:
+                    _model = pickle.load(f)
+            else:
+                raise FileNotFoundError(f"Report model not found at {MODEL_PATH} or {alt_model_path}")
+        else:
+            with open(MODEL_PATH, 'rb') as f:
+                _model = pickle.load(f)
+    
     if _feature_names is None:
         if not os.path.exists(FEATURES_PATH):
-            raise FileNotFoundError(f"Feature names not found at {FEATURES_PATH}")
-        with open(FEATURES_PATH, 'rb') as f:
-            _feature_names = pickle.load(f)
+            print(f"Feature names not found at {FEATURES_PATH}, will use model's internal features")
+            _feature_names = None
+        else:
+            with open(FEATURES_PATH, 'rb') as f:
+                _feature_names = pickle.load(f)
 
 
 def _load_timeseries():
     global _timeseries
     if _timeseries is None:
         if not os.path.exists(TIMESERIES_PATH):
-            raise FileNotFoundError(f"Timeseries data not found at {TIMESERIES_PATH}")
+            raise FileNotFoundError(f"Timeseries data not found at {TIMESES_PATH}")
         _timeseries = pd.read_csv(TIMESERIES_PATH)
         _timeseries['Datetime'] = pd.to_datetime(_timeseries['Datetime'])
         _timeseries.set_index('Datetime', inplace=True)
@@ -106,25 +120,34 @@ def predict_plant_report_model(plant_id: str, date_str: str, weather_dict: dict 
     if len(day_rows) >= 24:
         # Align to feature names from training
         X = day_rows.copy()
-        for col in _feature_names:
-            if col not in X.columns:
-                X[col] = 0.0
+        
+        if _feature_names is not None:
+            for col in _feature_names:
+                if col not in X.columns:
+                    X[col] = 0.0
         
         # Overlay live weather data if provided
         if weather_dict:
             for i in range(24):
-                if 'temp_C' in weather_dict and len(weather_dict['temp_C']) > i:
-                    X.iloc[i, X.columns.get_loc('temp_C')] = weather_dict['temp_C'][i]
-                if 'solar_W_m2' in weather_dict and len(weather_dict['solar_W_m2']) > i:
-                    X.iloc[i, X.columns.get_loc('solar_W_m2')] = weather_dict['solar_W_m2'][i]
-                if 'wind_m_s' in weather_dict and len(weather_dict['wind_m_s']) > i:
-                    X.iloc[i, X.columns.get_loc('wind_m_s')] = weather_dict['wind_m_s'][i]
-                if 'precip_mm' in weather_dict and len(weather_dict['precip_mm']) > i:
-                    X.iloc[i, X.columns.get_loc('precip_mm')] = weather_dict['precip_mm'][i]
-                if 'humidity_pct' in weather_dict and len(weather_dict['humidity_pct']) > i:
-                    X.iloc[i, X.columns.get_loc('humidity_pct')] = weather_dict['humidity_pct'][i]
+                if i < len(X):
+                    if 'temp_C' in weather_dict and len(weather_dict['temp_C']) > i:
+                        if 'temp_C' in X.columns:
+                            X.iloc[i, X.columns.get_loc('temp_C')] = weather_dict['temp_C'][i]
+                    if 'solar_W_m2' in weather_dict and len(weather_dict['solar_W_m2']) > i:
+                        if 'solar_W_m2' in X.columns:
+                            X.iloc[i, X.columns.get_loc('solar_W_m2')] = weather_dict['solar_W_m2'][i]
+                    if 'wind_m_s' in weather_dict and len(weather_dict['wind_m_s']) > i:
+                        if 'wind_m_s' in X.columns:
+                            X.iloc[i, X.columns.get_loc('wind_m_s')] = weather_dict['wind_m_s'][i]
+                    if 'precip_mm' in weather_dict and len(weather_dict['precip_mm']) > i:
+                        if 'precip_mm' in X.columns:
+                            X.iloc[i, X.columns.get_loc('precip_mm')] = weather_dict['precip_mm'][i]
+                    if 'humidity_pct' in weather_dict and len(weather_dict['humidity_pct']) > i:
+                        if 'humidity_pct' in X.columns:
+                            X.iloc[i, X.columns.get_loc('humidity_pct')] = weather_dict['humidity_pct'][i]
 
-        X = X[_feature_names]
+        if _feature_names is not None:
+            X = X[_feature_names]
         X = X.astype(float)
         preds = _model.predict(X)
         sparkline = [float(x) for x in preds[:24]]
