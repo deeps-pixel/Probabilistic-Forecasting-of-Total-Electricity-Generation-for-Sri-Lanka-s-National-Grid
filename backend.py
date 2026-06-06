@@ -80,19 +80,33 @@ class RAGProcessor:
     def initialize(self):
         if os.path.exists(FAISS_INDEX_PATH):
             print("Loading existing FAISS index...", flush=True)
-            self.vectorstore = FAISS.load_local(FAISS_INDEX_PATH, self.embeddings, allow_dangerous_deserialization=True)
-            self.is_ready = True
+            try:
+                self.vectorstore = FAISS.load_local(FAISS_INDEX_PATH, self.embeddings, allow_dangerous_deserialization=True)
+                self.is_ready = True
+                print("FAISS index loaded successfully.", flush=True)
+            except Exception as e:
+                print(f"Error loading FAISS index: {e}", flush=True)
+                print("Removing corrupted index and rebuilding...", flush=True)
+                import shutil
+                shutil.rmtree(FAISS_INDEX_PATH, ignore_errors=True)
+                self._build_index()
         else:
-            print("Building new FAISS index from 16 PDFs...", flush=True)
+            print("Building new FAISS index...", flush=True)
             self._build_index()
-
+        
     def _build_index(self):
         if not os.path.exists(PDF_DOCS_PATH):
-            print(f"Error: PDF path {PDF_DOCS_PATH} not found.")
+            print(f"PDF path not found. RAG disabled.")
+            self.is_ready = False
             return
-
+    
+        pdf_files = [f for f in os.listdir(PDF_DOCS_PATH) if f.lower().endswith('.pdf')]
+        if not pdf_files:
+            print("No PDF files found. RAG disabled.")
+            self.is_ready = False
+            return
+    
         all_docs = []
-        pdf_files = [f for f in os.listdir(PDF_DOCS_PATH) if f.endswith(".pdf")]
         print(f"Found {len(pdf_files)} PDF files. Starting extraction...", flush=True)
         
         for i, pdf_file in enumerate(pdf_files):
@@ -105,9 +119,20 @@ class RAGProcessor:
                 all_docs.extend(docs)
             except Exception as e:
                 print(f"Error loading {pdf_file}: {e}")
-
+    
+        if not all_docs:
+            print("No documents loaded. RAG disabled.")
+            self.is_ready = False
+            return
+    
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         chunks = text_splitter.split_documents(all_docs)
+        
+        if not chunks:
+            print("No document chunks generated. RAG disabled.")
+            self.is_ready = False
+            return
+            
         self.vectorstore = FAISS.from_documents(chunks, self.embeddings)
         self.vectorstore.save_local(FAISS_INDEX_PATH)
         self.is_ready = True
@@ -581,7 +606,7 @@ async def simulate_rl_battery(date: str, capacity: float = 500.0, rate: float = 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-app.mount("/", StaticFiles(directory=r"d:\energy_dashboard - uggghhhhhh - im done", html=True), name="static_root")
+app.mount("/", StaticFiles(directory=str(BASE_DIR), html=True), name="static_root")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
