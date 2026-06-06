@@ -23,6 +23,25 @@ This project combines historical CEB operational reports, NASA‑POWER weather d
    ```
    The FastAPI backend will listen on **http://localhost:8001** and the UI will be served at **http://localhost:8000**.
 
+## Troubleshooting
+
+### Backend fails to start
+- Ensure no other program is using port 8001: `netstat -ano | findstr :8001`
+- Delete the `faiss_index` folder if you get pydantic errors: `rmdir /s /q faiss_index`
+- Make sure you have a `.env` file with `ENERGY_API_KEY=your_key`
+
+### Map doesn't load on Plant Analytics page
+- Check that backend is running on port 8001
+- Open browser console (F12) to see specific errors
+
+### RAG / Copilot document search not working
+- Add PDF files to the `docs/` folder
+- Delete `faiss_index` folder and restart - it will rebuild
+
+### Port conflicts
+- Change backend port: `python backend.py --port 8002`
+- Update frontend API calls to use the new port
+
 ## Technical Stack
 | Layer | Technology |
 |---|---|
