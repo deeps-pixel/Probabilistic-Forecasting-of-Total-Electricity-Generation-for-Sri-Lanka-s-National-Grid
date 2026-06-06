@@ -1,88 +1,103 @@
 # Sri Lanka Energy Grid – AI Forecasting Dashboard
 
-> Probabilistic, weather‑integrated electricity generation forecasting for Sri Lanka’s national grid, delivered as an interactive full‑stack dashboard.
+> Probabilistic, weather‑integrated electricity generation forecasting for Sri Lanka's national grid, delivered as an interactive full‑stack dashboard.
 
 ## Introduction
-This project combines historical CEB operational reports, NASA‑POWER weather data, and modern machine‑learning models (LightGBM, Decision‑Tree baseline, and a reinforcement‑learning battery dispatch agent) to provide:
-- 14‑day national‑grid generation forecasts with confidence intervals.
-- Plant‑level analytics with live weather overlays.
-- An AI‑driven conversational assistant (Gemini‑2.5‑Flash) that answers policy‑focused queries.
-- Scenario simulation tools for future‑year planning.
+
+This project combines historical CEB operational reports, weather data, and machine‑learning models (LightGBM, Decision‑Tree baseline, and a reinforcement‑learning battery dispatch agent) to provide:
+
+- 14‑day national‑grid generation forecasts with confidence intervals
+- Plant‑level analytics with live weather overlays
+- An AI‑driven conversational assistant (Gemini‑2.5‑Flash) that answers policy‑focused queries
+- Scenario simulation tools for battery storage optimization
+
+## Technical Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Python • FastAPI • Uvicorn |
+| ML Models | LightGBM • Decision‑Tree • Stable‑Baselines3 (PPO) |
+| AI / RAG | Gemini 2.5 Flash • LangChain • FAISS |
+| Weather | Open‑Meteo API |
+| Frontend | Vanilla HTML • CSS • JavaScript • Chart.js • Leaflet |
 
 ## Quick Start
-1. **Clone the repository** and navigate into the project folder.
-2. **Create a virtual environment** and install dependencies:
-   ```bash
+
+1. Clone the repository and navigate into the project folder.
+
+2. Create a virtual environment and install dependencies:
+   ```
    python -m venv .venv
-   .venv\Scripts\activate   # Windows
+   .venv\Scripts\activate
    pip install -r requirements.txt
    ```
-3. **Run the application** (the helper script starts both backend and frontend):
-   ```batch
+
+3. Create a `.env` file with your Gemini API key:
+   ```
+   ENERGY_API_KEY=your_api_key_here
+   ```
+
+4. Run the application:
+   ```
    run_app.bat
    ```
-   The FastAPI backend will listen on **http://localhost:8001** and the UI will be served at **http://localhost:8000**.
+
+5. Open your browser to `http://localhost:8000`
 
 ## Troubleshooting
 
 ### Backend fails to start
-- Ensure no other program is using port 8001: `netstat -ano | findstr :8001`
-- Delete the `faiss_index` folder if you get pydantic errors: `rmdir /s /q faiss_index`
-- Make sure you have a `.env` file with `ENERGY_API_KEY=your_key`
+- Kill existing Python processes: `taskkill /f /im python.exe`
+- Delete the `faiss_index` folder: `rmdir /s /q faiss_index`
+- Make sure `.env` file exists with `ENERGY_API_KEY`
 
-### Map doesn't load on Plant Analytics page
-- Check that backend is running on port 8001
-- Open browser console (F12) to see specific errors
+### Forecast shows 0% renewable share
+Ensure `data/sample/01_timeseries_data_sample.csv` has sufficient rows (300+ rows)
 
-### RAG / Copilot document search not working
-- Add PDF files to the `docs/` folder
-- Delete `faiss_index` folder and restart - it will rebuild
+### Map doesn't load
+- Check backend is running on port 8001
+- Open browser console (F12) for errors
 
-### Port conflicts
-- Change backend port: `python backend.py --port 8002`
-- Update frontend API calls to use the new port
+### RAG not working
+- Add PDF files to `docs/` folder
+- Delete `faiss_index` folder and restart
 
-## Technical Stack
-| Layer | Technology |
-|---|---|
-| **Backend** | Python • FastAPI • Uvicorn |
-| **ML Models** | LightGBM • Decision‑Tree (baseline) • Stable‑Baselines3 (PPO) |
-| **AI / RAG** | Gemini 2.5 Flash • LangChain • FAISS |
-| **Weather** | NASA‑POWER API (open‑meteo fallback) |
-| **Frontend** | Vanilla HTML • CSS (glass‑morphism) • JavaScript • Chart.js • Leaflet |
+## Model Performance
 
-## Model Performance Highlights
-- **Combined MAE:** 10.05 MW
-- **R² (grid‑wide):** 0.9884
-- **LightGBM (35 plants) MAE:** 9.68 MW
-- **Baseline Decision‑Tree (15 plants) MAE:** 10.91 MW
+| Metric | Value |
+|--------|-------|
+| Combined MAE | 10.05 MW |
+| Grid‑wide R² | 0.9884 |
+| LightGBM MAE | 9.68 MW |
+| Baseline MAE | 10.91 MW |
+| Uncertainty (80% CI) | ±150 MW |
 
 ## Data
-The full dataset (~500 MB) is too large for GitHub. A lightweight sample (`data/sample/01_timeseries_data_sample.csv`) is bundled for quick validation. Update the `DATA_PATH` constant in `backend.py` if you wish to point to a custom dataset.
+
+The full dataset (~500 MB) is too large for GitHub. A lightweight sample (`data/sample/01_timeseries_data_sample.csv`) is bundled for testing.
 
 ## Project Report
-The comprehensive research report is included as **`Project_Report.pdf`** in the repository root. It covers:
-- Data preprocessing and feature engineering.
-- Model architecture and training methodology.
-- Forecast evaluation and error analysis.
-- Business‑impact discussion and future work.
+
+The comprehensive research report is included as `Project_Report.pdf` in the repository root.
 
 ## Usage Guide
-- **Generation Forecast Page** – Select a date to view national‑grid forecasts, daily yield cards, and model‑specific accuracy metrics.
-- **Plant Analytics Page** – Click a plant on the map or list to see hourly weather, forecast charts, and a detailed explanation of the modelling method used for that plant.
-- **Grid Copilot** – Ask natural‑language questions about capacity, forecasts, or policy documents. The AI will embed citations and metric values (e.g., “Tomorrow’s forecast is 1.2 GWh, with 96 % accuracy (MAE = 9.68 MW)”).
-- **Scenario Simulator** – Configure battery capacity and dispatch parameters, then run the RL agent to observe flattened load curves.
+
+- **Generation Forecast Page** – Select a date to view national‑grid forecasts, daily yield cards, and accuracy metrics.
+- **Plant Analytics Page** – Click a plant on the map to see hourly weather, forecast charts, and the modelling method used.
+- **Grid Copilot** – Ask natural‑language questions about capacity, forecasts, or policy documents.
+- **Scenario Simulator** – Configure battery capacity and dispatch parameters, then run the RL agent to observe load curves.
 
 ## Configuration
-Create a local `.env` file in the project root containing your API key:
-```text
+
+Create a `.env` file in the project root:
+```
 ENERGY_API_KEY=your_api_key_here
 ```
-Ensure `.env` is listed in `.gitignore` so it is not committed.
 
 ## Contributing
-Contributions are welcome. Please fork the repository, make your changes on a separate branch, and submit a pull request. Follow the existing code‑style guidelines and ensure all unit tests (if added) pass.
+
+Contributions are welcome. Fork the repository, make changes on a separate branch, and submit a pull request.
 
 ---
----
-*This project was done for education purposes only.*
+
+*This project was completed for educational purposes only.*
