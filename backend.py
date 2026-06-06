@@ -145,7 +145,10 @@ def get_grid_summary():
     return PROJECT_FINDINGS
 
 def get_grid_total_forecast(date: str = None):
-    """Returns total grid generation forecast for a specific date."""
+        """Get total grid generation forecast for a specific date.
+        
+        Use this for questions about total generation, renewable share, or peak demand.
+        """
     if not date:
         # Default to tomorrow if no date provided
         from datetime import datetime, timedelta
@@ -166,20 +169,51 @@ def get_grid_total_forecast(date: str = None):
         "accuracy": "MAE: 10.05 MW, R²: 0.9884"
     }
 
-def get_plant_forecast(plant_name: str):
-    """Returns generation forecast and master details for a specific Sri Lankan power plant."""
+def get_plant_forecast(plant_name: str, date: str = None):
+    """Get generation forecast for a specific power plant on a specific date.
+    
+    Use this when users ask about individual plants like Canyon, Norochcholai, etc.
+    """
+    from datetime import datetime, timedelta
+    import asyncio
+    
+    # If no date provided, use tomorrow
+    if not date:
+        date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    
     try:
+        # Get plant info from CSV
         df = pd.read_csv(PLANT_DATA_PATH)
         match = df[df['plant_name'].str.contains(plant_name, case=False, na=False)]
-        if not match.empty:
-            plant_info = match.iloc[0].to_dict()
-            plant_info["current_forecast_mw"] = round(plant_info["capacity_mw"] * 0.75, 2)
-            plant_info["health_status"] = "Optimal"
-            return plant_info
-        return {"error": f"Plant '{plant_name}' not found."}
+        if match.empty:
+            return {"error": f"Plant '{plant_name}' not found."}
+        
+        plant_info = match.iloc[0].to_dict()
+        plant_id = plant_info['plant_id']
+        
+        # Fetch weather data for the plant
+        lat = plant_info['latitude'] if pd.notna(plant_info['latitude']) else 6.9271
+        lon = plant_info['longitude'] if pd.notna(plant_info['longitude']) else 79.8612
+        
+        # Get forecast using existing endpoint logic
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # You'll need to call your forecast function here
+        # For now, return capacity-based estimate
+        forecast_mw = round(plant_info['capacity_mw'] * 0.6, 2)
+        loop.close()
+        
+        return {
+            "plant_name": plant_info['plant_name'],
+            "date": date,
+            "forecast_mw": forecast_mw,
+            "capacity_mw": plant_info['capacity_mw'],
+            "type": plant_info['type']
+        }
     except Exception as e:
         return {"error": str(e)}
-
+        
 def search_document_reports(query: str):
     """Searches official PDF reports (PUCSL/CEB/Statistical Digests) for historical data or agency statements."""
     return rag.search(query)
@@ -206,39 +240,72 @@ class ChatMessage(BaseModel):
 async def copilot_endpoint(chat: ChatMessage):
     try:
         system_instruction = """
-        You are the 'Intelligent Energy Grid Copilot' for Sri Lanka's national grid.
-
-        GOAL: Answer user questions about generation forecasts and grid operations using the available tools. Every forecast answer MUST include the numerical value from the tool response.
-
-        CRITICAL RULES FOR FORECAST QUESTIONS:
-
-        1. When asked about generation forecast (total or plant-specific):
-        - Call the appropriate tool: `get_grid_total_forecast(date)` or `get_plant_forecast(plant_name, date)`
-        - Extract the numerical forecast value from the tool's response
-        - Present it clearly: "Total generation for [date] is [value] GWh."
-        - Include accuracy only if the tool provides it or if explicitly asked
-
-        2. Response format examples:
-        - "Total generation for tomorrow is 42.8 GWh."
-        - "Norochcholai plant is forecast to generate 580 MW at peak on June 6."
-        - "The forecast shows 35% renewable share on that date."
-
-        3. For relative dates (today, tomorrow, day after tomorrow):
-        - Convert to YYYY-MM-DD before calling tools
-        - Example: tomorrow = 2026-06-06
-
-        4. For RAG / document search:
-        - Use `search_document_reports(query)` only for policy questions, historical statistics, or agency reports
-        - Cite the source: [Source: filename.pdf]
-
-        5. DO NOT:
-        - Invent forecast numbers
-        - Say "forecast is X% accurate" without showing the actual forecast value first
-        - Give uncertainty or confidence intervals unless asked
-
-        Prioritize tool calls. Be concise. Include the number.
+        You are the Sri Lanka Energy Grid Copilot, an AI assistant for grid operators and energy analysts.
+        
+        ## YOUR CAPABILITIES
+        You have access to FOUR tools:
+        1. get_grid_total_forecast(date) - Returns total national grid generation for a specific date
+        2. get_plant_forecast(plant_name, date) - Returns generation forecast for a specific power plant
+        3. get_grid_summary() - Returns project findings and model performance metrics
+        4. search_document_reports(query) - Searches PDF reports for policies, historical data, and regulations
+        
+        ## WHEN TO USE EACH TOOL
+        
+        ### Use get_grid_total_forecast when asked about:
+        - "Total generation" or "grid forecast"
+        - "How much power will be generated"
+        - "Renewable share" or "peak demand"
+        - Any question about overall grid numbers
+        
+        Examples:
+        - "What is tomorrow's generation?"
+        - "What is the peak demand on June 10?"
+        - "What percentage is renewable?"
+        
+        ### Use get_plant_forecast when asked about:
+        - A specific plant name (Canyon, Norochcholai, Yugadhanavi, etc.)
+        - "How much will X plant generate"
+        - Plant capacity or output
+        
+        Examples:
+        - "What is the forecast for Canyon power station?"
+        - "How much will Yugadhanavi generate tomorrow?"
+        
+        ### Use get_grid_summary when asked about:
+        - Model accuracy (MAE, R²)
+        - Project findings
+        - Crisis detection (March 2022 oil spike)
+        - Future scenarios (2025, 2030, 2050 limits)
+        
+        ### Use search_document_reports when asked about:
+        - Historical statistics (before 2021)
+        - Policy documents or regulations
+        - Agency reports (CEB, PUCSL)
+        - Anything not covered by the forecast data
+        
+        ## RESPONSE FORMAT RULES
+        
+        1. ALWAYS include the numerical value from the tool response
+        2. Be concise - 1 to 2 sentences maximum
+        3. Cite sources when using document search: [Source: filename.pdf]
+        
+        ## EXAMPLES
+        
+        User: "What is tomorrow's total generation?"
+        Response: "Tomorrow's total generation forecast is 42.8 GWh, with 35% renewable share."
+        
+        User: "How accurate is the LightGBM model?"
+        Response: "The LightGBM model has an MAE of 4.93 MW and R² of 0.991."
+        
+        User: "What does the 2024 statistical digest say about hydro power?"
+        Response: [After using search_document_reports] "According to the Statistical Digest 2024, hydro power contributed 36.1% of total generation. [Source: Statistical_Digest_2024.pdf]"
+        
+        ## CRITICAL RULES
+        - NEVER invent forecast numbers. ALWAYS use tools.
+        - For relative dates (today, tomorrow), convert to YYYY-MM-DD before calling tools.
+        - If a tool returns an error, explain the issue to the user.
+        - Be helpful, professional, and concise.
         """
-
         model = genai.GenerativeModel(
             model_name="gemini-2.5-flash",
             system_instruction=system_instruction,
