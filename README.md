@@ -4,7 +4,7 @@
 
 ## Demo Video
 
-[Watch the demo on Google Drive]([https://drive.google.com/your-link](https://drive.google.com/file/d/1RN3GX-rn3rMaiF-Vg3C3dGgV7T3yzOjZ/view?usp=sharing))
+[Watch the demo on Google Drive](https://drive.google.com/file/d/1RN3GX-rn3rMaiF-Vg3C3dGgV7T3yzOjZ/view?usp=sharing)
 
 ## Introduction
 
