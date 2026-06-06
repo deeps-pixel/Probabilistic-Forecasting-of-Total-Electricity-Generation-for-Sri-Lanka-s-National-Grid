@@ -48,13 +48,6 @@ This project combines historical CEB operational reports, weather data, and mach
 
 6. Open your browser to `http://localhost:8000`
 
-## .gitignore
-
-Make sure these files are not committed:
-- `.env` (contains your API key)
-- `faiss_index/` (can be rebuilt)
-- `.venv/` (virtual environment)
-
 ## Troubleshooting
 
 ### Backend fails to start
