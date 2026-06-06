@@ -144,9 +144,27 @@ def get_grid_summary():
     """Returns a high-level summary of the Sri Lankan Energy Project findings and technical details."""
     return PROJECT_FINDINGS
 
-def get_grid_total_forecast():
-    """Provides current total grid-wide forecast numbers derived from the LightGBM model results."""
-    return PROJECT_FINDINGS["grid_forecast_totals"]
+def get_grid_total_forecast(date: str = None):
+    """Returns total grid generation forecast for a specific date."""
+    if not date:
+        # Default to tomorrow if no date provided
+        from datetime import datetime, timedelta
+        date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    # Import the async function and run it
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(_get_aggregated_forecast(date))
+    loop.close()
+    
+    return {
+        "date": date,
+        "total_forecast_gwh": round(result['total_gwh'], 2),
+        "renewable_share": round(result['renewable_share'] * 100, 1),
+        "peak_demand_mw": round(result['peak_demand'], 2),
+        "accuracy": "MAE: 10.05 MW, R²: 0.9884"
+    }
 
 def get_plant_forecast(plant_name: str):
     """Returns generation forecast and master details for a specific Sri Lankan power plant."""
