@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).parent.parent.absolute()
 # Dynamic paths
 MODEL_PATH = BASE_DIR / "models" / "final_lightgbm.pkl"
 FEATURES_PATH = BASE_DIR / "models" / "feature_names.pkl"
-TIMESERIES_PATH = BASE_DIR / "data" / "sample" / "01_timeseries_data_sample.csv"
+TIMESERIES_PATH = BASE_DIR / "data" / "processed" / "01_timeseries_data_imputed.csv"
 
 _model = None
 _feature_names = None
