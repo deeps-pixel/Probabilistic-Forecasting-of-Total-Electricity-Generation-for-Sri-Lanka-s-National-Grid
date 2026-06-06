@@ -51,26 +51,47 @@ This project combines historical CEB operational reports, weather data, and mach
 - Delete the `faiss_index` folder: `rmdir /s /q faiss_index`
 - Make sure `.env` file exists with `ENERGY_API_KEY`
 
-### Forecast shows 0% renewable share
-Ensure `data/sample/01_timeseries_data_sample.csv` has sufficient rows (300+ rows)
-
 ### Map doesn't load
 - Check backend is running on port 8001
 - Open browser console (F12) for errors
 
 ### RAG not working
-- Add PDF files to `docs/` folder
 - Delete `faiss_index` folder and restart
 
 ## Model Performance
 
+**Weather‑dependent plants (46) – LightGBM**
+
 | Metric | Value |
 |--------|-------|
-| Combined MAE | 10.05 MW |
+| MAE | 4.93 ± 0.24 MW |
+| RMSE | 11.97 ± 2.07 MW |
+| R² | 0.9905 ± 0.0058 |
+| Uncertainty (80 % CI) | ±150 MW |
+
+**Coal plants (4) – Baseline (70 % capacity)**
+
+| Metric | Value |
+|--------|-------|
+| MAE | 15.6 MW |
+| R² | — |
+
+**Overall Summary**
+
+| Metric | Value |
+|--------|-------|
+| Combined MAE | 10.05 MW |
 | Grid‑wide R² | 0.9884 |
-| LightGBM MAE | 9.68 MW |
-| Baseline MAE | 10.91 MW |
-| Uncertainty (80% CI) | ±150 MW |
+| LightGBM MAE (overall) | 9.68 MW |
+| Baseline MAE (overall) | 10.91 MW |
+| Uncertainty (80 % CI) | ±150 MW |
+
+**Yugadhanavi (large oil) – Random Forest**
+
+| Metric | Value |
+|--------|-------|
+| MAE | 7.03 MW |
+| R² | 0.955 |
 
 ## Data
 
