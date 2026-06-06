@@ -32,17 +32,28 @@ This project combines historical CEB operational reports, weather data, and mach
    pip install -r requirements.txt
    ```
 
-3. Create a `.env` file with your Gemini API key:
+3. **Create a `.env` file** with your Gemini API key:
    ```
    ENERGY_API_KEY=your_api_key_here
    ```
 
-4. Run the application:
+4. **Download the dataset** from Google Drive:  
+   [01_timeseries_data_imputed.csv](https://drive.google.com/file/d/1sBld8h21Ax2o1L39RzVt1oIeNT8cCWRZ/view?usp=sharing)
+   **Place the file** in the following location inside the project folder: data/processed/01_timeseries_data_imputed.csv
+
+5. Run the application:
    ```
    run_app.bat
    ```
 
-5. Open your browser to `http://localhost:8000`
+6. Open your browser to `http://localhost:8000`
+
+## .gitignore
+
+Make sure these files are not committed:
+- `.env` (contains your API key)
+- `faiss_index/` (can be rebuilt)
+- `.venv/` (virtual environment)
 
 ## Troubleshooting
 
@@ -108,12 +119,6 @@ The comprehensive research report is included as `Project_Report.pdf` in the rep
 - **Grid Copilot** – Ask natural‑language questions about capacity, forecasts, or policy documents.
 - **Scenario Simulator** – Configure battery capacity and dispatch parameters, then run the RL agent to observe load curves.
 
-## Configuration
-
-Create a `.env` file in the project root:
-```
-ENERGY_API_KEY=your_api_key_here
-```
 
 ## Contributing
 
