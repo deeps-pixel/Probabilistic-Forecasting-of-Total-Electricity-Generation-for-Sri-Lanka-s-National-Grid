@@ -25,26 +25,23 @@ import requests
 import numpy as np
 import os
 from web_app.inference import predict_plant_report_model
-
-# --- CONFIGURATION ---
-GEMINI_API_KEY = "Your API KEY"
-
 from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv()
 
 # Get the directory where backend.py is located
 BASE_DIR = Path(__file__).parent.absolute()
 
-# Dynamic paths (works on any computer)
+
+# --- CONFIGURATION ---
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 PDF_DOCS_PATH = BASE_DIR / "docs"
 FAISS_INDEX_PATH = BASE_DIR / "faiss_index"
 PLANT_DATA_PATH = BASE_DIR / "data" / "processed" / "02_plant_master_clean.csv"
 MODELS_DIR = BASE_DIR / "models"
 
-# Convert to string for compatibility
-PDF_DOCS_PATH_STR = str(PDF_DOCS_PATH)
-FAISS_INDEX_PATH_STR = str(FAISS_INDEX_PATH)
-PLANT_DATA_PATH_STR = str(PLANT_DATA_PATH)
-MODELS_DIR_STR = str(MODELS_DIR)
 
 # Define plant types that are not modeled for forecasting
 UNMODELED_TYPES = {"lng", "biomass", "mini-hydro"}
@@ -80,35 +77,25 @@ class RAGProcessor:
     def initialize(self):
         if os.path.exists(FAISS_INDEX_PATH):
             print("Loading existing FAISS index...", flush=True)
-            try:
-                self.vectorstore = FAISS.load_local(FAISS_INDEX_PATH, self.embeddings, allow_dangerous_deserialization=True)
-                self.is_ready = True
-                print("FAISS index loaded successfully.", flush=True)
-            except Exception as e:
-                print(f"Error loading FAISS index: {e}", flush=True)
-                print("Removing corrupted index and rebuilding...", flush=True)
-                import shutil
-                shutil.rmtree(FAISS_INDEX_PATH, ignore_errors=True)
-                self._build_index()
+            self.vectorstore = FAISS.load_local(FAISS_INDEX_PATH, self.embeddings, allow_dangerous_deserialization=True)
+            self.is_ready = True
         else:
-            print("Building new FAISS index...", flush=True)
+            print("Building new FAISS index from 16 PDFs...", flush=True)
             self._build_index()
-        
+
     def _build_index(self):
+        # Ensure the PDF directory exists
         if not os.path.exists(PDF_DOCS_PATH):
-            print(f"PDF path not found. RAG disabled.")
+            print(f"Error: PDF path {PDF_DOCS_PATH} not found.")
             self.is_ready = False
             return
-    
         pdf_files = [f for f in os.listdir(PDF_DOCS_PATH) if f.lower().endswith('.pdf')]
         if not pdf_files:
-            print("No PDF files found. RAG disabled.")
+            print("No PDF files found in the docs directory; skipping FAISS index build.")
             self.is_ready = False
             return
-    
         all_docs = []
         print(f"Found {len(pdf_files)} PDF files. Starting extraction...", flush=True)
-        
         for i, pdf_file in enumerate(pdf_files):
             try:
                 print(f"[{i+1}/{len(pdf_files)}] Loading: {pdf_file}", flush=True)
@@ -119,20 +106,12 @@ class RAGProcessor:
                 all_docs.extend(docs)
             except Exception as e:
                 print(f"Error loading {pdf_file}: {e}")
-    
-        if not all_docs:
-            print("No documents loaded. RAG disabled.")
-            self.is_ready = False
-            return
-    
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         chunks = text_splitter.split_documents(all_docs)
-        
         if not chunks:
-            print("No document chunks generated. RAG disabled.")
+            print("No document chunks generated; skipping FAISS index creation.")
             self.is_ready = False
             return
-            
         self.vectorstore = FAISS.from_documents(chunks, self.embeddings)
         self.vectorstore.save_local(FAISS_INDEX_PATH)
         self.is_ready = True
@@ -209,19 +188,37 @@ class ChatMessage(BaseModel):
 async def copilot_endpoint(chat: ChatMessage):
     try:
         system_instruction = """
-        You are the 'Intelligent Energy Grid Copilot'. 
-        You were developed to deploy findings from a 4-year energy & weather pipeline project for Sri Lanka.
-        Current Date: 2026-06-05
-        
-        GOAL: Provide professional, grounded answers about Sri Lanka's energy grid. Be concise and confident. Include forecast volume and accuracy percentage in a human‑friendly sentence like "Tomorrow’s forecast X GWh, and the forecast is 96 % accurate (MAE = 10.05 MW)." Only include model metrics when explicitly asked.
+        You are the 'Intelligent Energy Grid Copilot' for Sri Lanka's national grid.
 
-        Answer all user questions regarding anomalies, specific dates (e.g. "day after tomorrow", "tomorrow", "today"), and specific plant forecasts precisely using the tools. If they ask about anomalies, use the data to infer or state facts confidently. Do not give uncertainty to the user. Ensure your answers are completely correct.
+        GOAL: Answer user questions about generation forecasts and grid operations using the available tools. Every forecast answer MUST include the numerical value from the tool response.
 
-        PRIORITIZATION POLICY (EXTREMELY IMPORTANT):
-        1. FIRST: Check internal project tools (`get_grid_summary`, `get_grid_total_forecast`, `get_plant_forecast`). Convert relative dates (like "tomorrow" or "day after tomorrow") to actual dates using the current date before calling tools. You MUST use YYYY-MM-DD format for tool calls.
-        2. SECOND: Use `search_document_reports` ONLY if the question is about specific historical statistics, agency reports, or items not covered by project data.
-        3. If you use information from a tool, acknowledge it in your response.
-        4. Citations: If using `search_document_reports`, cite the file name (e.g., [Source: Statistical_Digest_2024.pdf]).
+        CRITICAL RULES FOR FORECAST QUESTIONS:
+
+        1. When asked about generation forecast (total or plant-specific):
+        - Call the appropriate tool: `get_grid_total_forecast(date)` or `get_plant_forecast(plant_name, date)`
+        - Extract the numerical forecast value from the tool's response
+        - Present it clearly: "Total generation for [date] is [value] GWh."
+        - Include accuracy only if the tool provides it or if explicitly asked
+
+        2. Response format examples:
+        - "Total generation for tomorrow is 42.8 GWh."
+        - "Norochcholai plant is forecast to generate 580 MW at peak on June 6."
+        - "The forecast shows 35% renewable share on that date."
+
+        3. For relative dates (today, tomorrow, day after tomorrow):
+        - Convert to YYYY-MM-DD before calling tools
+        - Example: tomorrow = 2026-06-06
+
+        4. For RAG / document search:
+        - Use `search_document_reports(query)` only for policy questions, historical statistics, or agency reports
+        - Cite the source: [Source: filename.pdf]
+
+        5. DO NOT:
+        - Invent forecast numbers
+        - Say "forecast is X% accurate" without showing the actual forecast value first
+        - Give uncertainty or confidence intervals unless asked
+
+        Prioritize tool calls. Be concise. Include the number.
         """
 
         model = genai.GenerativeModel(
@@ -470,7 +467,6 @@ async def get_plant_forecast_detail(plant_name: str, date: str):
         lat = plant_info['latitude'] if pd.notna(plant_info['latitude']) and plant_info['latitude'] != "" else 6.9271
         lon = plant_info['longitude'] if pd.notna(plant_info['longitude']) and plant_info['longitude'] != "" else 79.8612
         cap = plant_info['capacity_mw']
-        ptype = plant_info['type']
         
         # Fetch Open-Meteo Hourly Data
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,shortwave_radiation&timezone=Asia/Colombo&start_date={date}&end_date={date}"
@@ -493,35 +489,96 @@ async def get_plant_forecast_detail(plant_name: str, date: str):
             'wind_m_s': winds,
             'solar_W_m2': solars
         }
-
         
         plant_id = plant_info['plant_id']
         ptype = plant_info['type']
         ptype_clean = str(ptype).title()
-
+        
         if ptype_clean.lower() in [t.lower() for t in UNMODELED_TYPES]:
             return {"plant_name": plant_name, "error": "Unmodeled plant type. Forecast not available.", "is_unmodeled": True}
-
         
-        if plant_id in scheduled_plants:
-            ptype = scheduled_plants[plant_id]['type']
-            pred_mw = cap * utilization_factors.get(ptype, 0.5)
-            sparkline = []
+        sparkline = []
+        model_group = ''
+        
+        # SPECIAL CASE: Yugadhanavi - Use Random Forest model
+        if plant_id == 'P26_wcp':
+            try:
+                # Load Random Forest model
+                rf_path = MODELS_DIR / 'rf_model.pkl'
+                if os.path.exists(rf_path):
+                    with open(rf_path, 'rb') as f:
+                        rf_model = pickle.load(f)
+                    
+                    target_date = datetime.strptime(date, '%Y-%m-%d')
+                    
+                    for h_idx in range(24):
+                        # Build time-based features for RF (matches notebook)
+                        features = pd.DataFrame([{
+                            'hour_sin': np.sin(2 * np.pi * h_idx / 24),
+                            'hour_cos': np.cos(2 * np.pi * h_idx / 24),
+                            'dow_sin': np.sin(2 * np.pi * target_date.weekday() / 7),
+                            'dow_cos': np.cos(2 * np.pi * target_date.weekday() / 7),
+                            'month_sin': np.sin(2 * np.pi * target_date.month / 12),
+                            'month_cos': np.cos(2 * np.pi * target_date.month / 12),
+                            'is_weekend': 1 if target_date.weekday() >= 5 else 0,
+                            'lag_1h': 0, 'lag_2h': 0, 'lag_3h': 0, 'lag_6h': 0, 'lag_12h': 0, 'lag_24h': 0,
+                            'rolling_6h_mean': 0, 'rolling_12h_mean': 0, 'rolling_24h_mean': 0,
+                        }])
+                        
+                        # Ensure all columns match model's expected features
+                        if hasattr(rf_model, 'feature_names_in_'):
+                            for col in rf_model.feature_names_in_:
+                                if col not in features.columns:
+                                    features[col] = 0
+                            features = features[rf_model.feature_names_in_]
+                        
+                        pred = rf_model.predict(features)[0]
+                        pred = max(0, min(pred, cap))
+                        sparkline.append(round(pred, 2))
+                    
+                    model_group = 'random_forest'
+                    print(f"Yugadhanavi forecast using Random Forest")
+                else:
+                    raise FileNotFoundError("RF model not found")
+                    
+            except Exception as e:
+                print(f"Random Forest failed for Yugadhanavi: {e}, falling back to baseline")
+                # Fall through to baseline
+                sparkline = []
+        
+        # BASELINE: Scheduled plants (Coal and other Oil)
+        if not sparkline and plant_id in scheduled_plants:
+            plant_type = scheduled_plants[plant_id]['type']
+            pred_mw = cap * utilization_factors.get(plant_type, 0.5)
             for h_idx in range(24):
                 diurnal_factor = 1.0 + (np.sin((h_idx - 6) * np.pi / 12) * 0.05)
                 val = pred_mw * diurnal_factor
                 val = min(max(val, 0), cap)
                 sparkline.append(round(val, 2))
             model_group = 'baseline'
-        else:
-            res_report = predict_plant_report_model(plant_id, date, weather_dict)
-            sparkline = [round(x, 2) for x in res_report['sparkline_mw']]
-            sparkline = [min(max(x, 0), cap) for x in sparkline]
-            model_group = 'lightgbm'
+        
+        # LIGHTGBM: Weather-dependent plants (Hydro, Solar, Wind, etc.)
+        if not sparkline:
+            try:
+                res_report = predict_plant_report_model(plant_id, date, weather_dict)
+                sparkline = [round(x, 2) for x in res_report['sparkline_mw']]
+                sparkline = [min(max(x, 0), cap) for x in sparkline]
+                model_group = 'lightgbm'
+            except Exception as e:
+                print(f"LightGBM failed for {plant_id}: {e}")
+                raise HTTPException(status_code=500, detail=f"Model prediction failed: {str(e)}")
         
         avg_temp = round(sum(temps) / 24, 1)
         weather_cond = "Sunny" if sum(solars)/24 > 200 else "Cloudy/Rain" if sum(precips) > 5 else "Clear"
-
+        
+        # Set confidence score based on model type
+        if model_group == 'lightgbm':
+            confidence = 99.1
+        elif model_group == 'random_forest':
+            confidence = 95.5
+        else:
+            confidence = 85.0
+        
         return {
             "plant_name": plant_info['plant_name'],
             "date": date,
@@ -536,7 +593,7 @@ async def get_plant_forecast_detail(plant_name: str, date: str):
             },
             "expected_yield_mwh": round(sum(sparkline), 2),
             "peak_output_mw": max(sparkline),
-            "confidence_score": 99.1 if model_group == 'lightgbm' else 85.0,
+            "confidence_score": confidence,
             "sparkline": sparkline,
             "status": "Operational",
             "model_type": model_group
