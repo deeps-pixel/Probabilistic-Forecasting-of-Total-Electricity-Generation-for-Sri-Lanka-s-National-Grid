@@ -28,10 +28,23 @@ from web_app.inference import predict_plant_report_model
 
 # --- CONFIGURATION ---
 GEMINI_API_KEY = "Your API KEY"
-PDF_DOCS_PATH = r"d:\energy_dashboard - uggghhhhhh - im done\docs"
-FAISS_INDEX_PATH = r"d:\energy_dashboard - uggghhhhhh - im done\faiss_index"
-PLANT_DATA_PATH = r"d:\energy_dashboard - uggghhhhhh - im done\data\processed\02_plant_master_clean.csv"
-MODELS_DIR = r"d:\energy_dashboard - uggghhhhhh - im done\models"
+
+from pathlib import Path
+
+# Get the directory where backend.py is located
+BASE_DIR = Path(__file__).parent.absolute()
+
+# Dynamic paths (works on any computer)
+PDF_DOCS_PATH = BASE_DIR / "docs"
+FAISS_INDEX_PATH = BASE_DIR / "faiss_index"
+PLANT_DATA_PATH = BASE_DIR / "data" / "processed" / "02_plant_master_clean.csv"
+MODELS_DIR = BASE_DIR / "models"
+
+# Convert to string for compatibility
+PDF_DOCS_PATH_STR = str(PDF_DOCS_PATH)
+FAISS_INDEX_PATH_STR = str(FAISS_INDEX_PATH)
+PLANT_DATA_PATH_STR = str(PLANT_DATA_PATH)
+MODELS_DIR_STR = str(MODELS_DIR)
 
 # Define plant types that are not modeled for forecasting
 UNMODELED_TYPES = {"lng", "biomass", "mini-hydro"}
